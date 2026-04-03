@@ -471,7 +471,7 @@
                             @endif
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="students-tbody">
                         @php $a = 0 @endphp
                         @foreach ($students as $allEligibleStudent)
                         <tr>
@@ -529,5 +529,42 @@
 
 
 
+
+
+<script>
+document.getElementById('selectform').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const tbody = document.getElementById('students-tbody');
+    const colCount = document.querySelectorAll('#divFrmAll thead th').length;
+
+    // Show loading indicator
+    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <div class="mt-2 text-muted">Loading students...</div>
+    </td></tr>`;
+
+    const params = new URLSearchParams(new FormData(this)).toString();
+
+    fetch('/getESByFormRequest?' + params, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function (res) {
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.text();
+    })
+    .then(function (html) {
+        tbody.innerHTML = html;
+    })
+    .catch(function (err) {
+        tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center text-danger py-4">
+            <strong>Error loading data.</strong> Please try again.
+        </td></tr>`;
+        console.error('AJAX search error:', err);
+    });
+});
+</script>
 
 @endsection
