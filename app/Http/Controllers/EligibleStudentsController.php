@@ -517,7 +517,46 @@ WHERE student_registrations.regNum IS NULL
     }
 
 
+
+    public function getESByRegNum(Request $request)
+    {
+        $regNum = trim($request->input('regNum'));
+
+        $students = collect(DB::select('
+SELECT
+    eligible_students.id,
+    student_registrations.id as "sid",
+    eligible_students.nameWithInitials,
+    eligible_students.regNum,
+    eligible_students.indexNum,
+    eligible_students.faculty,
+    eligible_students.department,
+    eligible_students.degreeName,
+    eligible_students.cloakIssueDate,
+    eligible_students.cloakReturnDate,
+    eligible_students.garlandReturnDate,
+    eligible_students.convocationName,
+    student_registrations.status,
+    surveys.id as "svid"
+FROM eligible_students
+LEFT JOIN student_registrations ON eligible_students.regNum = student_registrations.regNum
+LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum
+WHERE eligible_students.regNum = ?
+        ', [$regNum]));
+
+        if ($request->ajax()) {
+            if ($students->isEmpty()) {
+                return response()->json(['error' => 'No student found with register number: ' . $regNum], 404);
+            }
+            return view('eligibleStudents._students_tbody', compact('students'));
+        }
+
+        $convo = Convocation::orderBy('convocation', 'asc')->pluck('convocation', 'id');
+        return view('eligibleStudents.index', compact('students', 'convo'));
+    }
+
     public function getByRegNum(Request $request)
+
     {
         $studentRegistrations = StudentRegistration::all();
         $eligibleStudents = EligibleStudent::all();

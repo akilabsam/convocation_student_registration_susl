@@ -379,6 +379,30 @@
 {{--            </script>--}}
 
 
+{{-- ===== Search by Register Number ===== --}}
+ @if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))
+    <div class="mt-4 w-100 pb-2">
+        <div class="card shadow p-4" style="background-color: #E9DDDD;">
+            <h4 class="text-center mb-4">Search by Register Number</h4>
+
+            <div id="regNumError" class="alert alert-danger d-none" role="alert"></div>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-9">
+                    <label for="regNumSearch" class="form-label">Register Number</label>
+                    <input type="text" id="regNumSearch" class="form-control"
+                           placeholder="e.g. 21CIS0138" autocomplete="off">
+                </div>
+                <div class="col-12 col-md-3 d-flex gap-2">
+                    <button type="button" id="regNumSearchBtn" class="btn btn-primary w-100">Search</button>
+                    <button type="button" id="regNumResetBtn" class="btn btn-outline-secondary w-100">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+ @endif
+{{-- ===== End Search by Register Number ===== --}}
+
  @if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))
     <div class=" mt-4 w-100 pb-4">
         <div class="card shadow p-4" style="background-color: #E9DDDD;">
@@ -532,6 +556,7 @@
 
 
 <script>
+// --- Existing: Search Eligible Students (by filters) ---
 document.getElementById('selectform').addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -564,6 +589,64 @@ document.getElementById('selectform').addEventListener('submit', function (e) {
         </td></tr>`;
         console.error('AJAX search error:', err);
     });
+});
+
+// --- New: Search by Register Number ---
+document.getElementById('regNumSearchBtn').addEventListener('click', function () {
+    const regNum  = document.getElementById('regNumSearch').value.trim();
+    const errorEl = document.getElementById('regNumError');
+
+    // Reset error state
+    errorEl.classList.add('d-none');
+    errorEl.textContent = '';
+
+    if (!regNum) {
+        errorEl.textContent = 'Please enter a register number before searching.';
+        errorEl.classList.remove('d-none');
+        return;
+    }
+
+    const tbody    = document.getElementById('students-tbody');
+    const colCount = document.querySelectorAll('#divFrmAll thead th').length;
+
+    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <div class="mt-2 text-muted">Searching...</div>
+    </td></tr>`;
+
+    fetch('/getESByRegNum?regNum=' + encodeURIComponent(regNum), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function (res) {
+        if (res.status === 404) {
+            return res.json().then(function (data) {
+                throw { type: 'not_found', message: data.error || 'No student found with that register number.' };
+            });
+        }
+        if (!res.ok) throw { type: 'server', message: 'Server error (' + res.status + '). Please try again.' };
+        return res.text();
+    })
+    .then(function (html) {
+        tbody.innerHTML = html;
+    })
+    .catch(function (err) {
+        // Restore empty tbody
+        tbody.innerHTML = '';
+        if (err && err.type === 'not_found') {
+            errorEl.textContent = err.message;
+            errorEl.classList.remove('d-none');
+        } else {
+            errorEl.textContent = (err && err.message) ? err.message : 'An unexpected error occurred.';
+            errorEl.classList.remove('d-none');
+            console.error('RegNum search error:', err);
+        }
+    });
+});
+
+document.getElementById('regNumResetBtn').addEventListener('click', function () {
+    document.getElementById('regNumSearch').value = '';
+    document.getElementById('regNumError').classList.add('d-none');
+    document.getElementById('regNumError').textContent = '';
 });
 </script>
 
