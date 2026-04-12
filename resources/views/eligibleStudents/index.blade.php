@@ -414,24 +414,24 @@
                     
                     <div class="col-12">
                         <label for="convocationName" class="form-label">Convocation Name</label>
-                        {{ Form::select('convocationName', ($convo), null, ['class' => 'form-select']) }}
+                        {{ Form::select('convocationName', ($convo), null, ['class' => 'form-select', 'id' => 'mainConvocationSelect']) }}
                     </div>
 
                     <div class="col-md-6">
                         <label for="studentRegEligible" class="form-label">Registration Status</label>
-                        <select required name="studentRegEligible" class="form-select">
-                            <option selected value="All">All Eligible Students</option>
-                            <option value="Registered">Registered Students</option>
-                            <option value="Pending">Registered Students Pending</option>
-                            <option value="Reject">Registered Students Rejected</option>
-                            <option value="Accept">Registered Students Accepted</option>
-                            <option value="NotRegistered">Not Registered Students</option>
+                        <select required name="studentRegEligible" class="form-select" id="statusSelect">
+                            <option selected value="All"    id="statusOpt-All">All Eligible Students</option>
+                            <option value="Registered"      id="statusOpt-Registered">Registered Students</option>
+                            <option value="Pending"         id="statusOpt-Pending">Registered Students Pending</option>
+                            <option value="Reject"          id="statusOpt-Reject">Registered Students Rejected</option>
+                            <option value="Accept"          id="statusOpt-Accept">Registered Students Accepted</option>
+                            <option value="NotRegistered"   id="statusOpt-NotRegistered">Not Registered Students</option>
                         </select>
                     </div>
 
                     <div class="col-md-6">
                         <label for="faculty" class="form-label">Faculty</label>
-                        <select required name="faculty" class="form-select">
+                        <select required name="faculty" class="form-select" id="mainFacultySelect">
                             <option value="All Faculty">All Faculty</option>
                             <option value="Computing">Computing</option>
                             <option value="Agricultural Sciences">Agricultural Sciences</option>
@@ -556,7 +556,58 @@
 
 
 <script>
-// --- Existing: Search Eligible Students (by filters) ---
+// =====================================================================
+// Status-count labels for the Registration Status dropdown
+// =====================================================================
+
+// Map option value → base label text
+var STATUS_LABELS = {
+    'All'           : 'All Eligible Students',
+    'Registered'    : 'Registered Students',
+    'Pending'       : 'Registered Students Pending',
+    'Reject'        : 'Registered Students Rejected',
+    'Accept'        : 'Registered Students Accepted',
+    'NotRegistered' : 'Not Registered Students'
+};
+
+/**
+ * Fetch student counts for the current convocation + faculty selection
+ * and update each option label with the count in parentheses.
+ */
+function fetchAndUpdateStatusCounts() {
+    var convoSelect   = document.getElementById('mainConvocationSelect');
+    var facultySelect = document.getElementById('mainFacultySelect');
+
+    if (!convoSelect || !facultySelect) return;
+
+    var params = 'convocationName=' + encodeURIComponent(convoSelect.value)
+               + '&faculty='       + encodeURIComponent(facultySelect.value);
+
+    fetch('/getStatusCounts?' + params, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function (res) {
+        if (!res.ok) throw new Error('Status count request failed');
+        return res.json();
+    })
+    .then(function (counts) {
+        // Update each option label
+        Object.keys(STATUS_LABELS).forEach(function (key) {
+            var opt = document.getElementById('statusOpt-' + key);
+            if (opt && counts[key] !== undefined) {
+                opt.textContent = STATUS_LABELS[key] + ' (' + counts[key] + ')';
+            }
+        });
+    })
+    .catch(function (err) {
+        // Silently fail — counts are cosmetic; core search still works
+        console.warn('Could not fetch status counts:', err);
+    });
+}
+
+// =====================================================================
+// Existing: Search Eligible Students (by filters) — UNCHANGED logic
+// =====================================================================
 document.getElementById('selectform').addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -582,6 +633,8 @@ document.getElementById('selectform').addEventListener('submit', function (e) {
     })
     .then(function (html) {
         tbody.innerHTML = html;
+        // After the first successful search, update the status counts
+        fetchAndUpdateStatusCounts();
     })
     .catch(function (err) {
         tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center text-danger py-4">
@@ -591,7 +644,17 @@ document.getElementById('selectform').addEventListener('submit', function (e) {
     });
 });
 
-// --- New: Search by Register Number ---
+// Re-fetch counts immediately whenever convocation or faculty selection changes
+document.getElementById('mainConvocationSelect').addEventListener('change', function () {
+    fetchAndUpdateStatusCounts();
+});
+document.getElementById('mainFacultySelect').addEventListener('change', function () {
+    fetchAndUpdateStatusCounts();
+});
+
+// =====================================================================
+// Existing: Search by Register Number — UNCHANGED logic
+// =====================================================================
 document.getElementById('regNumSearchBtn').addEventListener('click', function () {
     const regNum  = document.getElementById('regNumSearch').value.trim();
     const errorEl = document.getElementById('regNumError');

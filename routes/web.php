@@ -115,6 +115,7 @@ Route::get('/getByEmail',[App\Http\Controllers\EligibleStudentsController::class
 Route::get('/getByRegNum',[App\Http\Controllers\EligibleStudentsController::class, 'getByRegNum'])->name('getByRegNum');
 Route::get('/getESByFormRequest',[App\Http\Controllers\EligibleStudentsController::class, 'getESByFormRequest'])->name('getESByFormRequest');
 Route::get('/getESByRegNum', [App\Http\Controllers\EligibleStudentsController::class, 'getESByRegNum'])->name('getESByRegNum');
+Route::get('/getStatusCounts', [App\Http\Controllers\EligibleStudentsController::class, 'getStatusCounts'])->name('getStatusCounts');
 
 
 

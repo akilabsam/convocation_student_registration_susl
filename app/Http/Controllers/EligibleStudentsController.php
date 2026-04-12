@@ -571,5 +571,92 @@ WHERE eligible_students.regNum = ?
         echo $email;
     }
 
+    /**
+     * Return student counts per registration status for a given convocation and faculty.
+     * Used by the frontend to update the Registration Status dropdown labels.
+     */
+    public function getStatusCounts(Request $request)
+    {
+        $convo          = Convocation::orderBy('convocation', 'asc')->pluck('convocation', 'id');
+        $convocationId  = $request->input('convocationName');
+        $faculty        = $request->input('faculty');
+        $convocationName = isset($convo[$convocationId]) ? $convo[$convocationId] : null;
+
+        if (!$convocationName) {
+            return response()->json(['error' => 'Invalid convocation'], 422);
+        }
+
+        // Faculty filter helper
+        $facultyFilter  = ($faculty && $faculty !== 'All Faculty') ? $faculty : null;
+
+        // Base query parts
+        $baseAll = '
+            SELECT es.convocationName, sr.status
+            FROM eligible_students es
+            LEFT JOIN student_registrations sr ON es.regNum = sr.regNum
+        ';
+        $baseRegistered = '
+            SELECT es.convocationName, sr.status
+            FROM eligible_students es
+            INNER JOIN student_registrations sr ON es.regNum = sr.regNum
+        ';
+        $baseNotReg = '
+            SELECT es.convocationName, NULL as status
+            FROM eligible_students es
+            LEFT JOIN student_registrations sr ON es.regNum = sr.regNum
+            WHERE sr.regNum IS NULL
+        ';
+
+        $allRows        = collect(DB::select($baseAll));
+        $registeredRows = collect(DB::select($baseRegistered));
+        $notRegRows     = collect(DB::select($baseNotReg));
+
+        // Apply convocation filter
+        $allRows        = $allRows->where('convocationName', $convocationName);
+        $registeredRows = $registeredRows->where('convocationName', $convocationName);
+        $notRegRows     = $notRegRows->where('convocationName', $convocationName);
+
+        // Apply faculty filter
+        if ($facultyFilter) {
+            // Need faculty column – re-query with faculty
+            $withFaculty = '
+                SELECT es.convocationName, es.faculty, sr.status
+                FROM eligible_students es
+                LEFT JOIN student_registrations sr ON es.regNum = sr.regNum
+            ';
+            $withFacultyReg = '
+                SELECT es.convocationName, es.faculty, sr.status
+                FROM eligible_students es
+                INNER JOIN student_registrations sr ON es.regNum = sr.regNum
+            ';
+            $withFacultyNotReg = '
+                SELECT es.convocationName, es.faculty, NULL as status
+                FROM eligible_students es
+                LEFT JOIN student_registrations sr ON es.regNum = sr.regNum
+                WHERE sr.regNum IS NULL
+            ';
+            $allRows        = collect(DB::select($withFaculty))
+                                ->where('convocationName', $convocationName)
+                                ->where('faculty', $facultyFilter);
+            $registeredRows = collect(DB::select($withFacultyReg))
+                                ->where('convocationName', $convocationName)
+                                ->where('faculty', $facultyFilter);
+            $notRegRows     = collect(DB::select($withFacultyNotReg))
+                                ->where('convocationName', $convocationName)
+                                ->where('faculty', $facultyFilter);
+        }
+
+        $counts = [
+            'All'           => $allRows->count(),
+            'Registered'    => $registeredRows->count(),
+            'Pending'       => $registeredRows->where('status', 'Pending')->count(),
+            'Reject'        => $registeredRows->where('status', 'Reject')->count(),
+            'Accept'        => $registeredRows->where('status', 'Accept')->count(),
+            'NotRegistered' => $notRegRows->count(),
+        ];
+
+        return response()->json($counts);
+    }
+
 
 }
