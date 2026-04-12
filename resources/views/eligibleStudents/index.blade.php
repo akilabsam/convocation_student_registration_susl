@@ -348,6 +348,9 @@
                             </div>
                         </form>
                     @endif
+
+
+
             </div>
 
 
@@ -379,29 +382,7 @@
 {{--            </script>--}}
 
 
-{{-- ===== Search by Register Number ===== --}}
- @if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))
-    <div class="mt-4 w-100 pb-2">
-        <div class="card shadow p-4" style="background-color: #E9DDDD;">
-            <h4 class="text-center mb-4">Search by Register Number</h4>
 
-            <div id="regNumError" class="alert alert-danger d-none" role="alert"></div>
-
-            <div class="row g-3 align-items-end">
-                <div class="col-12 col-md-9">
-                    <label for="regNumSearch" class="form-label">Register Number</label>
-                    <input type="text" id="regNumSearch" class="form-control"
-                           placeholder="e.g. 21CIS0138" autocomplete="off">
-                </div>
-                <div class="col-12 col-md-3 d-flex gap-2">
-                    <button type="button" id="regNumSearchBtn" class="btn btn-primary w-100">Search</button>
-                    <button type="button" id="regNumResetBtn" class="btn btn-outline-secondary w-100">Reset</button>
-                </div>
-            </div>
-        </div>
-    </div>
- @endif
-{{-- ===== End Search by Register Number ===== --}}
 
  @if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))
     <div class=" mt-4 w-100 pb-4">
@@ -449,11 +430,27 @@
 
                     <div class="col-12 d-flex justify-content-center gap-3 mt-3">
                         <button type="submit" class="btn btn-primary px-4">Search</button>
-                        <button type="button" class="btn btn-outline-secondary px-4" 
+                        <button type="button" class="btn btn-outline-secondary px-4"
                             onclick="document.getElementById('selectform').reset();">
                             Reset
                         </button>
                     </div>
+
+                    {{-- ===== Search by Register Number (merged) ===== --}}
+                    <hr class="my-4">
+                    <div id="regNumError" class="alert alert-danger d-none" role="alert"></div>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-9">
+                            <label for="regNumSearch" class="form-label">Search by Register Number</label>
+                            <input type="text" id="regNumSearch" class="form-control"
+                                   placeholder="e.g. 21CIS0138" autocomplete="off">
+                        </div>
+                        <div class="col-12 col-md-3 d-flex gap-2">
+                            <button type="button" id="regNumSearchBtn" class="btn btn-success w-100">Search</button>
+                            <button type="button" id="regNumResetBtn" class="btn btn-outline-secondary w-100">Reset</button>
+                        </div>
+                    </div>
+                    {{-- ===== End Search by Register Number ===== --}}
 
                 </div>
             </form>
