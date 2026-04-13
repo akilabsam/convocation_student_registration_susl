@@ -175,10 +175,7 @@ LEFT JOIN student_registrations ON eligible_students.regNum=student_registration
 LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum;
 '))->where('convocationName', '=', $convocationName);
             }
-     if ($request->ajax()) {
-                return view('eligibleStudents._students_tbody', compact('students'));
-            }
-            return view('eligibleStudents.index',compact('students','convo'));
+     return view('eligibleStudents.index',compact('students','convo'));
 
         }
 
@@ -233,9 +230,6 @@ INNER JOIN student_registrations ON eligible_students.regNum=student_registratio
 LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum;
 '))->where('convocationName', '=', $convocationName);
             }
-            if ($request->ajax()) {
-                return view('eligibleStudents._students_tbody', compact('students'));
-            }
             return view('eligibleStudents.index',compact('students','convo'));
         }
 
@@ -284,9 +278,6 @@ FROM eligible_students
 LEFT JOIN student_registrations ON eligible_students.regNum=student_registrations.regNum
 WHERE student_registrations.regNum IS NULL
 '))->where('convocationName', '=', $convocationName);
-            }
-            if ($request->ajax()) {
-                return view('eligibleStudents._students_tbody', compact('students'));
             }
             return view('eligibleStudents.index',compact('students','convo'));
         }
@@ -347,9 +338,6 @@ WHERE student_registrations.regNum IS NULL
                 }
 
 
-                if ($request->ajax()) {
-                    return view('eligibleStudents._students_tbody', compact('students'));
-                }
                 return view('eligibleStudents.index',compact('students','convo'));
 
             }
