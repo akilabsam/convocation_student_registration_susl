@@ -18,8 +18,20 @@ class EligibleStudentsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        // If user clicked Reset, clear saved filters and show default data
+        if ($request->has('clear_filters')) {
+            session()->forget('es_filters');
+        }
+
+        // If session has saved search filters, re-apply them
+        $filters = session('es_filters');
+        if ($filters) {
+            $request->merge($filters);
+            return $this->getESByFormRequest($request);
+        }
+
         session_start();
         // $convo = Convocation::orderBy('convocation', 'desc')->pluck('convocation', 'id');
         $convo = Convocation::orderBy('convocation', 'asc')->pluck('convocation', 'id');
@@ -124,6 +136,17 @@ WHERE eligible_students.convocationName = ?;
         $faculty = $request->input('faculty');
         $convocationName = $convo[$request->input('convocationName')];
 
+        // Save search filters to session for persistence across redirects
+        session(['es_filters' => [
+            'convocationName'    => $request->input('convocationName'),
+            'studentRegEligible' => $studentRegEligible,
+            'faculty'            => $faculty,
+        ]]);
+
+        // Pass selected values to the view for pre-selecting dropdowns
+        $selectedConvocation = $request->input('convocationName');
+        $selectedStatus      = $studentRegEligible;
+        $selectedFaculty     = $faculty;
 
 
         if($request->input('studentRegEligible')=="All") {
@@ -175,7 +198,7 @@ LEFT JOIN student_registrations ON eligible_students.regNum=student_registration
 LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum;
 '))->where('convocationName', '=', $convocationName);
             }
-     return view('eligibleStudents.index',compact('students','convo'));
+     return view('eligibleStudents.index',compact('students','convo','selectedConvocation','selectedStatus','selectedFaculty'));
 
         }
 
@@ -230,7 +253,7 @@ INNER JOIN student_registrations ON eligible_students.regNum=student_registratio
 LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum;
 '))->where('convocationName', '=', $convocationName);
             }
-            return view('eligibleStudents.index',compact('students','convo'));
+            return view('eligibleStudents.index',compact('students','convo','selectedConvocation','selectedStatus','selectedFaculty'));
         }
 
         elseif ($request->input('studentRegEligible')=="NotRegistered"){
@@ -279,7 +302,7 @@ LEFT JOIN student_registrations ON eligible_students.regNum=student_registration
 WHERE student_registrations.regNum IS NULL
 '))->where('convocationName', '=', $convocationName);
             }
-            return view('eligibleStudents.index',compact('students','convo'));
+            return view('eligibleStudents.index',compact('students','convo','selectedConvocation','selectedStatus','selectedFaculty'));
         }
 
 
@@ -338,7 +361,7 @@ WHERE student_registrations.regNum IS NULL
                 }
 
 
-                return view('eligibleStudents.index',compact('students','convo'));
+                return view('eligibleStudents.index',compact('students','convo','selectedConvocation','selectedStatus','selectedFaculty'));
 
             }
         }

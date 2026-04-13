@@ -414,45 +414,44 @@
                     
                     <div class="col-12">
                         <label for="convocationName" class="form-label">Convocation Name</label>
-                        {{ Form::select('convocationName', ($convo), null, ['class' => 'form-select', 'id' => 'mainConvocationSelect']) }}
+                        {{ Form::select('convocationName', ($convo), $selectedConvocation ?? null, ['class' => 'form-select', 'id' => 'mainConvocationSelect']) }}
                     </div>
 
                     <div class="col-md-6">
                         <label for="studentRegEligible" class="form-label">Registration Status</label>
                         <select required name="studentRegEligible" class="form-select" id="statusSelect">
-                            <option selected value="All"    id="statusOpt-All">All Eligible Students</option>
-                            <option value="Registered"      id="statusOpt-Registered">Registered Students</option>
-                            <option value="Pending"         id="statusOpt-Pending">Registered Students Pending</option>
-                            <option value="Reject"          id="statusOpt-Reject">Registered Students Rejected</option>
-                            <option value="Accept"          id="statusOpt-Accept">Registered Students Accepted</option>
-                            <option value="NotRegistered"   id="statusOpt-NotRegistered">Not Registered Students</option>
+                            <option value="All"    id="statusOpt-All" {{ ($selectedStatus ?? 'All') == 'All' ? 'selected' : '' }}>All Eligible Students</option>
+                            <option value="Registered"      id="statusOpt-Registered" {{ ($selectedStatus ?? '') == 'Registered' ? 'selected' : '' }}>Registered Students</option>
+                            <option value="Pending"         id="statusOpt-Pending" {{ ($selectedStatus ?? '') == 'Pending' ? 'selected' : '' }}>Registered Students Pending</option>
+                            <option value="Reject"          id="statusOpt-Reject" {{ ($selectedStatus ?? '') == 'Reject' ? 'selected' : '' }}>Registered Students Rejected</option>
+                            <option value="Accept"          id="statusOpt-Accept" {{ ($selectedStatus ?? '') == 'Accept' ? 'selected' : '' }}>Registered Students Accepted</option>
+                            <option value="NotRegistered"   id="statusOpt-NotRegistered" {{ ($selectedStatus ?? '') == 'NotRegistered' ? 'selected' : '' }}>Not Registered Students</option>
                         </select>
                     </div>
 
                     <div class="col-md-6">
                         <label for="faculty" class="form-label">Faculty</label>
                         <select required name="faculty" class="form-select" id="mainFacultySelect">
-                            <option value="All Faculty">All Faculty</option>
-                            <option value="Computing">Computing</option>
-                            <option value="Agricultural Sciences">Agricultural Sciences</option>
-                            <option value="Applied Sciences">Applied Sciences</option>
-                            <option value="Geomatics">Geomatics</option>
-                            <option value="Management Studies">Management Studies</option>
-                            <option value="Medicine">Medicine</option>
-                            <option value="Social Sciences & Languages">Social Sciences & Languages</option>
-                            <option value="Technology">Technology</option>
-                            <option value="Sport">Sport</option>
-                            <option value="Graduate Studies">Graduate Studies</option>
-                            <option value="Indigenous Knowledge & Community Studies">Indigenous Knowledge & Community Studies</option>
+                            <option value="All Faculty" {{ ($selectedFaculty ?? 'All Faculty') == 'All Faculty' ? 'selected' : '' }}>All Faculty</option>
+                            <option value="Computing" {{ ($selectedFaculty ?? '') == 'Computing' ? 'selected' : '' }}>Computing</option>
+                            <option value="Agricultural Sciences" {{ ($selectedFaculty ?? '') == 'Agricultural Sciences' ? 'selected' : '' }}>Agricultural Sciences</option>
+                            <option value="Applied Sciences" {{ ($selectedFaculty ?? '') == 'Applied Sciences' ? 'selected' : '' }}>Applied Sciences</option>
+                            <option value="Geomatics" {{ ($selectedFaculty ?? '') == 'Geomatics' ? 'selected' : '' }}>Geomatics</option>
+                            <option value="Management Studies" {{ ($selectedFaculty ?? '') == 'Management Studies' ? 'selected' : '' }}>Management Studies</option>
+                            <option value="Medicine" {{ ($selectedFaculty ?? '') == 'Medicine' ? 'selected' : '' }}>Medicine</option>
+                            <option value="Social Sciences & Languages" {{ ($selectedFaculty ?? '') == 'Social Sciences & Languages' ? 'selected' : '' }}>Social Sciences & Languages</option>
+                            <option value="Technology" {{ ($selectedFaculty ?? '') == 'Technology' ? 'selected' : '' }}>Technology</option>
+                            <option value="Sport" {{ ($selectedFaculty ?? '') == 'Sport' ? 'selected' : '' }}>Sport</option>
+                            <option value="Graduate Studies" {{ ($selectedFaculty ?? '') == 'Graduate Studies' ? 'selected' : '' }}>Graduate Studies</option>
+                            <option value="Indigenous Knowledge & Community Studies" {{ ($selectedFaculty ?? '') == 'Indigenous Knowledge & Community Studies' ? 'selected' : '' }}>Indigenous Knowledge & Community Studies</option>
                         </select>
                     </div>
 
                     <div class="col-12 d-flex justify-content-center gap-3 mt-3">
                         <button type="submit" class="btn btn-primary px-4">Search</button>
-                        <button type="button" class="btn btn-outline-secondary px-4" 
-                            onclick="document.getElementById('selectform').reset();">
+                        <a href="{{ route('eligibleStudents.index', ['clear_filters' => 1]) }}" class="btn btn-outline-secondary px-4">
                             Reset
-                        </button>
+                        </a>
                     </div>
 
                 </div>
@@ -546,14 +545,4 @@
                     </tbody>
                 </table>
             </div>
-            
-
-
-
-
-
-
-
-
-
 @endsection
