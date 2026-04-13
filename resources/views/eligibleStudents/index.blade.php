@@ -545,4 +545,53 @@
                     </tbody>
                 </table>
             </div>
+<script>
+(function () {
+    var convoSelect   = document.getElementById('mainConvocationSelect');
+    var facultySelect = document.getElementById('mainFacultySelect');
+    var statusSelect  = document.getElementById('statusSelect');
+
+    if (!convoSelect || !facultySelect || !statusSelect) return;
+
+    // Base labels for each status option (without counts)
+    var baseLabels = {
+        'All':           'All Eligible Students',
+        'Registered':    'Registered Students',
+        'Pending':       'Registered Students Pending',
+        'Reject':        'Registered Students Rejected',
+        'Accept':        'Registered Students Accepted',
+        'NotRegistered': 'Not Registered Students'
+    };
+
+    function fetchStatusCounts() {
+        var params = new URLSearchParams({
+            convocationName: convoSelect.value,
+            faculty: facultySelect.value
+        });
+
+        fetch('/getStatusCounts?' + params.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (counts) {
+            // Update each option label with the count
+            for (var key in baseLabels) {
+                var option = document.getElementById('statusOpt-' + key);
+                if (option && counts[key] !== undefined) {
+                    option.textContent = baseLabels[key] + ' (' + counts[key] + ')';
+                }
+            }
+        })
+        .catch(function (err) {
+            console.error('Failed to fetch status counts:', err);
+        });
+    }
+
+    // Fetch counts on page load and when convocation or faculty changes
+    fetchStatusCounts();
+    convoSelect.addEventListener('change', fetchStatusCounts);
+    facultySelect.addEventListener('change', fetchStatusCounts);
+})();
+</script>
+
 @endsection
