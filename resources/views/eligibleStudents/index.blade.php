@@ -380,27 +380,32 @@
 
 
 {{-- ===== Search by Register Number ===== --}}
- @if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))
+@if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))
     <div class="mt-4 w-100 pb-2">
         <div class="card shadow p-4" style="background-color: #E9DDDD;">
             <h4 class="text-center mb-4">Search by Register Number</h4>
 
-            <div id="regNumError" class="alert alert-danger d-none" role="alert"></div>
+            @if(session('regnum_error'))
+                <div class="alert alert-danger" role="alert">{{ session('regnum_error') }}</div>
+            @endif
 
-            <div class="row g-3 align-items-end">
-                <div class="col-12 col-md-9">
-                    <label for="regNumSearch" class="form-label">Register Number</label>
-                    <input type="text" id="regNumSearch" class="form-control"
-                           placeholder="e.g. 21CIS0138" autocomplete="off">
+            <form action="{{ route('getESByRegNum') }}" method="GET">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-9">
+                        <label for="regNum" class="form-label">Register Number</label>
+                        <input type="text" name="regNum" id="regNum" class="form-control"
+                               placeholder="e.g. 21CIS0138" autocomplete="off"
+                               value="{{ $selectedRegNum ?? '' }}">
+                    </div>
+                    <div class="col-12 col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                        <a href="{{ route('eligibleStudents.index', ['clear_filters' => 1]) }}" class="btn btn-outline-secondary w-100">Reset</a>
+                    </div>
                 </div>
-                <div class="col-12 col-md-3 d-flex gap-2">
-                    <button type="button" id="regNumSearchBtn" class="btn btn-primary w-100">Search</button>
-                    <button type="button" id="regNumResetBtn" class="btn btn-outline-secondary w-100">Reset</button>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
- @endif
+@endif
 {{-- ===== End Search by Register Number ===== --}}
 
  @if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))

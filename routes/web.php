@@ -55,13 +55,13 @@ Route::get('/', function () {
 //
 //});
 
-Route::get('/eligibleStd',[App\Http\Controllers\StudentRegistrationController::class, 'eligibleStd'])->name('eligibleStd');
-Route::get('/surveyView',[App\Http\Controllers\SurveyController::class, 'surveyView'])->name('surveyView');
-Route::get('/checkData',[App\Http\Controllers\MailController::class, 'checkData'])->name('checkData');
-Route::get('/submit-google-survey',[App\Http\Controllers\SurveyController::class, 'submitGoogleSurvey'])->name('submitGoogleSurvey');
-Route::post('/mark-survey-completed',[App\Http\Controllers\SurveyController::class, 'markSurveyCompleted'])->name('markSurveyCompleted');
-Route::get('/check-survey-status',[App\Http\Controllers\SurveyController::class, 'checkSurveyStatus'])->name('checkSurveyStatus');
-Route::post('/reset-survey-completion',[App\Http\Controllers\SurveyController::class, 'resetSurveyCompletion'])->name('resetSurveyCompletion');
+Route::get('/eligibleStd', [App\Http\Controllers\StudentRegistrationController::class, 'eligibleStd'])->name('eligibleStd');
+Route::get('/surveyView', [App\Http\Controllers\SurveyController::class, 'surveyView'])->name('surveyView');
+Route::get('/checkData', [App\Http\Controllers\MailController::class, 'checkData'])->name('checkData');
+Route::get('/submit-google-survey', [App\Http\Controllers\SurveyController::class, 'submitGoogleSurvey'])->name('submitGoogleSurvey');
+Route::post('/mark-survey-completed', [App\Http\Controllers\SurveyController::class, 'markSurveyCompleted'])->name('markSurveyCompleted');
+Route::get('/check-survey-status', [App\Http\Controllers\SurveyController::class, 'checkSurveyStatus'])->name('checkSurveyStatus');
+Route::post('/reset-survey-completion', [App\Http\Controllers\SurveyController::class, 'resetSurveyCompletion'])->name('resetSurveyCompletion');
 
 
 Route::get('/check', function () {
@@ -98,22 +98,29 @@ Route::post('emailGet/{email}', [App\Http\Controllers\EligibleStudentsController
 
 
 
-Route::get('/mail',[MailController::class, 'sendMail'])->name('mail');;
-Route::post('/sendConfirmedMail',[MailController::class, 'sendConfirmedMail'])->name('sendConfirmedMail');;
-Route::get('/loginfilter',[MailController::class, 'loginfilter'])->name('loginfilter');;
+Route::get('/mail', [MailController::class, 'sendMail'])->name('mail');
+;
+Route::post('/sendConfirmedMail', [MailController::class, 'sendConfirmedMail'])->name('sendConfirmedMail');
+;
+Route::get('/loginfilter', [MailController::class, 'loginfilter'])->name('loginfilter');
+;
 
-Route::put('/statusConfirm',[App\Http\Controllers\EligibleStudentsController::class, 'statusConfirm'])->name('statusConfirm');;
+Route::put('/statusConfirm', [App\Http\Controllers\EligibleStudentsController::class, 'statusConfirm'])->name('statusConfirm');
+;
 
 
-Route::post('/statusConfirm',[App\Http\Controllers\StudentRegistrationController::class, 'registerdReset'])->name('statusConfirm');;
+Route::post('/statusConfirm', [App\Http\Controllers\StudentRegistrationController::class, 'registerdReset'])->name('statusConfirm');
+;
 // Route::get('/send-registration-mail/{email}', [MailController::class, 'SurveyController'])->name('RegistrationSendMail');
 
 
 
-Route::get('/completeEmailVerification',[App\Http\Controllers\EligibleStudentsController::class, 'completeEmailVerification'])->name('completeEmailVerification');;
-Route::get('/getByEmail',[App\Http\Controllers\EligibleStudentsController::class, 'getByEmail'])->name('getByEmail');;
-Route::get('/getByRegNum',[App\Http\Controllers\EligibleStudentsController::class, 'getByRegNum'])->name('getByRegNum');
-Route::get('/getESByFormRequest',[App\Http\Controllers\EligibleStudentsController::class, 'getESByFormRequest'])->name('getESByFormRequest');
+Route::get('/completeEmailVerification', [App\Http\Controllers\EligibleStudentsController::class, 'completeEmailVerification'])->name('completeEmailVerification');
+;
+Route::get('/getByEmail', [App\Http\Controllers\EligibleStudentsController::class, 'getByEmail'])->name('getByEmail');
+;
+Route::get('/getByRegNum', [App\Http\Controllers\EligibleStudentsController::class, 'getByRegNum'])->name('getByRegNum');
+Route::get('/getESByFormRequest', [App\Http\Controllers\EligibleStudentsController::class, 'getESByFormRequest'])->name('getESByFormRequest');
 Route::get('/getESByRegNum', [App\Http\Controllers\EligibleStudentsController::class, 'getESByRegNum'])->name('getESByRegNum');
 Route::get('/getStatusCounts', [App\Http\Controllers\EligibleStudentsController::class, 'getStatusCounts'])->name('getStatusCounts');
 
@@ -147,31 +154,37 @@ Route::resource('user', \App\Http\Controllers\UserController::class);
 
 //Route::get('/getPDF', [App\Http\Controllers\PDFController::class, 'download']);
 
-Route::group(['middleware'=>'auth'], function () {
-    Route::get('permissions-all-users',['middleware'=>'check-permission:user|admin|superadmin','uses'=>'HomeController@allUsers']);
-    Route::get('permissions-admin-superadmin',['middleware'=>'check-permission:admin|superadmin','uses'=>'HomeController@adminSuperadmin']);
-    Route::get('permissions-superadmin',['middleware'=>'check-permission:superadmin','uses'=>'HomeController@superadmin']);
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('permissions-all-users', ['middleware' => 'check-permission:user|admin|superadmin', 'uses' => 'HomeController@allUsers']);
+    Route::get('permissions-admin-superadmin', ['middleware' => 'check-permission:admin|superadmin', 'uses' => 'HomeController@adminSuperadmin']);
+    Route::get('permissions-superadmin', ['middleware' => 'check-permission:superadmin', 'uses' => 'HomeController@superadmin']);
 });
 
 
-Route::get('/edit-records','App\Http\Controllers\UserDetailsController@index');
-Route::get('edit/{id}','App\Http\Controllers\UserDetailsController@show');
-Route::post('edit/{id}','App\Http\Controllers\UserDetailsController@edit');
-Route::get('delete/{id}','App\Http\Controllers\UserDetailsController@destroy');
+Route::get('/edit-records', 'App\Http\Controllers\UserDetailsController@index');
+Route::get('edit/{id}', 'App\Http\Controllers\UserDetailsController@show');
+Route::post('edit/{id}', 'App\Http\Controllers\UserDetailsController@edit');
+Route::get('delete/{id}', 'App\Http\Controllers\UserDetailsController@destroy');
 
 
 //Route::post('/eligible_students/updateDetail',[\App\Http\Controllers\EligibleStudentsController0::class,'updateDetail'])->name('eligible_students.updateDetail');
 Route::get('/import-users', [\App\Http\Controllers\EligibleStudentsController::class, 'importstudents'])->name('importstudents');
 Route::post('/upload-users', [\App\Http\Controllers\EligibleStudentsController::class, 'uploadstudents'])->name('uploadstudents');
 
-Route::get('/export', [\App\Http\Controllers\StudentRegistrationController::class, 'export'])->name('export');;
-Route::get('/exportbyfaculty', [\App\Http\Controllers\StudentRegistrationController::class, 'exportbyfaculty'])->name('exportbyfaculty');;
-Route::get('/eligiblestudentreset', [\App\Http\Controllers\StudentRegistrationController::class, 'eligiblestudentreset'])->name('eligiblestudentreset');;
+Route::get('/export', [\App\Http\Controllers\StudentRegistrationController::class, 'export'])->name('export');
+;
+Route::get('/exportbyfaculty', [\App\Http\Controllers\StudentRegistrationController::class, 'exportbyfaculty'])->name('exportbyfaculty');
+;
+Route::get('/eligiblestudentreset', [\App\Http\Controllers\StudentRegistrationController::class, 'eligiblestudentreset'])->name('eligiblestudentreset');
+;
 
-Route::get('/exportsurvey', [\App\Http\Controllers\SurveyController::class, 'exportSurvey'])->name('exportsurvey');;
+Route::get('/exportsurvey', [\App\Http\Controllers\SurveyController::class, 'exportSurvey'])->name('exportsurvey');
+;
 
-Route::get('/registerdreset', [\App\Http\Controllers\StudentRegistrationController::class, 'registerdreset'])->name('registerdreset');;
-Route::get('/registerdwithsurveyreset', [\App\Http\Controllers\StudentRegistrationController::class, 'registerdwithsurveyreset'])->name('registerdwithsurveyreset');;
+Route::get('/registerdreset', [\App\Http\Controllers\StudentRegistrationController::class, 'registerdreset'])->name('registerdreset');
+;
+Route::get('/registerdwithsurveyreset', [\App\Http\Controllers\StudentRegistrationController::class, 'registerdwithsurveyreset'])->name('registerdwithsurveyreset');
+;
 
 Route::get('/forget-password', '\App\Http\Controllers\Auth\ForgotPasswordController@getEmail');
 Route::post('/forget-password', '\App\Http\Controllers\Auth\ForgotPasswordController@postEmail');
@@ -180,12 +193,12 @@ Route::post('/forget-password', '\App\Http\Controllers\Auth\ForgotPasswordContro
 Route::get('/reset-password/{token}', '\App\Http\Controllers\Auth\ResetPasswordController@showResetForm');
 Route::post('/reset-password', '\App\Http\Controllers\Auth\ResetPasswordController@reset');
 
-Route::get('/tab1',function (){
+Route::get('/tab1', function () {
     return view('home');
 });
-Route::get('/tab2',function (){
+Route::get('/tab2', function () {
     return view('home');
 });
-Route::get('/tab3',function (){
+Route::get('/tab3', function () {
     return view('home');
 });

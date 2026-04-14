@@ -20,12 +20,20 @@ class EligibleStudentsController extends Controller
      */
     public function index(Request $request)
     {
-        // If user clicked Reset, clear saved filters and show default data
+        // If user clicked Reset, clear both saved filters and show default data
         if ($request->has('clear_filters')) {
             session()->forget('es_filters');
+            session()->forget('es_regnum_filter');
         }
 
-        // If session has saved search filters, re-apply them
+        // If session has a reg-num filter, re-apply it
+        $regnumFilter = session('es_regnum_filter');
+        if ($regnumFilter) {
+            $request->merge($regnumFilter);
+            return $this->getESByRegNum($request);
+        }
+
+        // If session has saved form-search filters, re-apply them
         $filters = session('es_filters');
         if ($filters) {
             $request->merge($filters);
@@ -135,6 +143,9 @@ WHERE eligible_students.convocationName = ?;
         $studentRegEligible = $request->input('studentRegEligible');
         $faculty = $request->input('faculty');
         $convocationName = $convo[$request->input('convocationName')];
+
+        // Clear reg-num filter so the two searches don't conflict
+        session()->forget('es_regnum_filter');
 
         // Save search filters to session for persistence across redirects
         session(['es_filters' => [
@@ -533,6 +544,15 @@ WHERE student_registrations.regNum IS NULL
     {
         $regNum = trim($request->input('regNum'));
 
+        // Clear the form-search session so the two searches don't conflict
+        session()->forget('es_filters');
+
+        // Persist the reg-num filter in session
+        session(['es_regnum_filter' => ['regNum' => $regNum]]);
+
+        $convo = Convocation::orderBy('convocation', 'asc')->pluck('convocation', 'id');
+        $selectedRegNum = $regNum;
+
         $students = collect(DB::select('
 SELECT
     eligible_students.id,
@@ -555,15 +575,13 @@ LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum
 WHERE eligible_students.regNum = ?
         ', [$regNum]));
 
-        if ($request->ajax()) {
-            if ($students->isEmpty()) {
-                return response()->json(['error' => 'No student found with register number: ' . $regNum], 404);
-            }
-            return view('eligibleStudents._students_tbody', compact('students'));
+        if ($students->isEmpty()) {
+            session()->forget('es_regnum_filter');
+            return redirect()->route('eligibleStudents.index')
+                ->with('regnum_error', 'No student found with register number: ' . $regNum);
         }
 
-        $convo = Convocation::orderBy('convocation', 'asc')->pluck('convocation', 'id');
-        return view('eligibleStudents.index', compact('students', 'convo'));
+        return view('eligibleStudents.index', compact('students', 'convo', 'selectedRegNum'));
     }
 
     public function getByRegNum(Request $request)
