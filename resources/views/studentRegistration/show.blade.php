@@ -329,6 +329,17 @@
             </div>
 
         </form>
+
+        {{-- Loading overlay shown during form submission --}}
+        <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+            <div style="text-align:center; color:#fff;">
+                <div class="spinner-border text-light" role="status" style="width:3rem; height:3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div style="margin-top:15px; font-size:1.2rem;">Processing your review...</div>
+                <div style="margin-top:5px; font-size:0.9rem; opacity:0.8;">Please do not close or refresh this page.</div>
+            </div>
+        </div>
         @endif
     </div>
 
@@ -350,6 +361,17 @@
                 confirmButtonText: "Yes, confirm it!"
             }).then((result) => {
                 if (result.isConfirmed) {
+                    // Show loading overlay
+                    var overlay = document.getElementById('loadingOverlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                    }
+                    // Disable the Reviewed button to prevent double submission
+                    var btn = event.target.querySelector('button[type="submit"]');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.textContent = 'Please wait...';
+                    }
                     event.target.submit(); // Submit the form if confirmed
                 }
             });
