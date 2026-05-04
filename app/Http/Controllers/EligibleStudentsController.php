@@ -18,8 +18,28 @@ class EligibleStudentsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        // If user clicked Reset, clear both saved filters and show default data
+        if ($request->has('clear_filters')) {
+            session()->forget('es_filters');
+            session()->forget('es_regnum_filter');
+        }
+
+        // If session has a reg-num filter, re-apply it
+        $regnumFilter = session('es_regnum_filter');
+        if ($regnumFilter) {
+            $request->merge($regnumFilter);
+            return $this->getESByRegNum($request);
+        }
+
+        // If session has saved form-search filters, re-apply them
+        $filters = session('es_filters');
+        if ($filters) {
+            $request->merge($filters);
+            return $this->getESByFormRequest($request);
+        }
+
         session_start();
         // $convo = Convocation::orderBy('convocation', 'desc')->pluck('convocation', 'id');
         $convo = Convocation::orderBy('convocation', 'asc')->pluck('convocation', 'id');
@@ -124,6 +144,20 @@ WHERE eligible_students.convocationName = ?;
         $faculty = $request->input('faculty');
         $convocationName = $convo[$request->input('convocationName')];
 
+        // Clear reg-num filter so the two searches don't conflict
+        session()->forget('es_regnum_filter');
+
+        // Save search filters to session for persistence across redirects
+        session(['es_filters' => [
+            'convocationName'    => $request->input('convocationName'),
+            'studentRegEligible' => $studentRegEligible,
+            'faculty'            => $faculty,
+        ]]);
+
+        // Pass selected values to the view for pre-selecting dropdowns
+        $selectedConvocation = $request->input('convocationName');
+        $selectedStatus      = $studentRegEligible;
+        $selectedFaculty     = $faculty;
 
 
         if($request->input('studentRegEligible')=="All") {
@@ -175,7 +209,7 @@ LEFT JOIN student_registrations ON eligible_students.regNum=student_registration
 LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum;
 '))->where('convocationName', '=', $convocationName);
             }
-     return view('eligibleStudents.index',compact('students','convo'));
+     return view('eligibleStudents.index',compact('students','convo','selectedConvocation','selectedStatus','selectedFaculty'));
 
         }
 
@@ -230,7 +264,7 @@ INNER JOIN student_registrations ON eligible_students.regNum=student_registratio
 LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum;
 '))->where('convocationName', '=', $convocationName);
             }
-            return view('eligibleStudents.index',compact('students','convo'));
+            return view('eligibleStudents.index',compact('students','convo','selectedConvocation','selectedStatus','selectedFaculty'));
         }
 
         elseif ($request->input('studentRegEligible')=="NotRegistered"){
@@ -279,7 +313,7 @@ LEFT JOIN student_registrations ON eligible_students.regNum=student_registration
 WHERE student_registrations.regNum IS NULL
 '))->where('convocationName', '=', $convocationName);
             }
-            return view('eligibleStudents.index',compact('students','convo'));
+            return view('eligibleStudents.index',compact('students','convo','selectedConvocation','selectedStatus','selectedFaculty'));
         }
 
 
@@ -338,7 +372,7 @@ WHERE student_registrations.regNum IS NULL
                 }
 
 
-                return view('eligibleStudents.index',compact('students','convo'));
+                return view('eligibleStudents.index',compact('students','convo','selectedConvocation','selectedStatus','selectedFaculty'));
 
             }
         }
@@ -505,7 +539,53 @@ WHERE student_registrations.regNum IS NULL
     }
 
 
+
+    public function getESByRegNum(Request $request)
+    {
+        $regNum = trim($request->input('regNum'));
+
+        // Clear the form-search session so the two searches don't conflict
+        session()->forget('es_filters');
+
+        // Persist the reg-num filter in session
+        session(['es_regnum_filter' => ['regNum' => $regNum]]);
+
+        $convo = Convocation::orderBy('convocation', 'asc')->pluck('convocation', 'id');
+        $selectedRegNum = $regNum;
+
+        $students = collect(DB::select('
+SELECT
+    eligible_students.id,
+    student_registrations.id as "sid",
+    eligible_students.nameWithInitials,
+    eligible_students.regNum,
+    eligible_students.indexNum,
+    eligible_students.faculty,
+    eligible_students.department,
+    eligible_students.degreeName,
+    eligible_students.cloakIssueDate,
+    eligible_students.cloakReturnDate,
+    eligible_students.garlandReturnDate,
+    eligible_students.convocationName,
+    student_registrations.status,
+    surveys.id as "svid"
+FROM eligible_students
+LEFT JOIN student_registrations ON eligible_students.regNum = student_registrations.regNum
+LEFT JOIN surveys ON student_registrations.regNum = surveys.regNum
+WHERE eligible_students.regNum = ?
+        ', [$regNum]));
+
+        if ($students->isEmpty()) {
+            session()->forget('es_regnum_filter');
+            return redirect()->route('eligibleStudents.index')
+                ->with('regnum_error', 'No student found with register number: ' . $regNum);
+        }
+
+        return view('eligibleStudents.index', compact('students', 'convo', 'selectedRegNum'));
+    }
+
     public function getByRegNum(Request $request)
+
     {
         $studentRegistrations = StudentRegistration::all();
         $eligibleStudents = EligibleStudent::all();
@@ -518,6 +598,93 @@ WHERE student_registrations.regNum IS NULL
     public function emailGet(Request $request, $email){
 
         echo $email;
+    }
+
+    /**
+     * Return student counts per registration status for a given convocation and faculty.
+     * Used by the frontend to update the Registration Status dropdown labels.
+     */
+    public function getStatusCounts(Request $request)
+    {
+        $convo          = Convocation::orderBy('convocation', 'asc')->pluck('convocation', 'id');
+        $convocationId  = $request->input('convocationName');
+        $faculty        = $request->input('faculty');
+        $convocationName = isset($convo[$convocationId]) ? $convo[$convocationId] : null;
+
+        if (!$convocationName) {
+            return response()->json(['error' => 'Invalid convocation'], 422);
+        }
+
+        // Faculty filter helper
+        $facultyFilter  = ($faculty && $faculty !== 'All Faculty') ? $faculty : null;
+
+        // Base query parts
+        $baseAll = '
+            SELECT es.convocationName, sr.status
+            FROM eligible_students es
+            LEFT JOIN student_registrations sr ON es.regNum = sr.regNum
+        ';
+        $baseRegistered = '
+            SELECT es.convocationName, sr.status
+            FROM eligible_students es
+            INNER JOIN student_registrations sr ON es.regNum = sr.regNum
+        ';
+        $baseNotReg = '
+            SELECT es.convocationName, NULL as status
+            FROM eligible_students es
+            LEFT JOIN student_registrations sr ON es.regNum = sr.regNum
+            WHERE sr.regNum IS NULL
+        ';
+
+        $allRows        = collect(DB::select($baseAll));
+        $registeredRows = collect(DB::select($baseRegistered));
+        $notRegRows     = collect(DB::select($baseNotReg));
+
+        // Apply convocation filter
+        $allRows        = $allRows->where('convocationName', $convocationName);
+        $registeredRows = $registeredRows->where('convocationName', $convocationName);
+        $notRegRows     = $notRegRows->where('convocationName', $convocationName);
+
+        // Apply faculty filter
+        if ($facultyFilter) {
+            // Need faculty column – re-query with faculty
+            $withFaculty = '
+                SELECT es.convocationName, es.faculty, sr.status
+                FROM eligible_students es
+                LEFT JOIN student_registrations sr ON es.regNum = sr.regNum
+            ';
+            $withFacultyReg = '
+                SELECT es.convocationName, es.faculty, sr.status
+                FROM eligible_students es
+                INNER JOIN student_registrations sr ON es.regNum = sr.regNum
+            ';
+            $withFacultyNotReg = '
+                SELECT es.convocationName, es.faculty, NULL as status
+                FROM eligible_students es
+                LEFT JOIN student_registrations sr ON es.regNum = sr.regNum
+                WHERE sr.regNum IS NULL
+            ';
+            $allRows        = collect(DB::select($withFaculty))
+                                ->where('convocationName', $convocationName)
+                                ->where('faculty', $facultyFilter);
+            $registeredRows = collect(DB::select($withFacultyReg))
+                                ->where('convocationName', $convocationName)
+                                ->where('faculty', $facultyFilter);
+            $notRegRows     = collect(DB::select($withFacultyNotReg))
+                                ->where('convocationName', $convocationName)
+                                ->where('faculty', $facultyFilter);
+        }
+
+        $counts = [
+            'All'           => $allRows->count(),
+            'Registered'    => $registeredRows->count(),
+            'Pending'       => $registeredRows->where('status', 'Pending')->count(),
+            'Reject'        => $registeredRows->where('status', 'Reject')->count(),
+            'Accept'        => $registeredRows->where('status', 'Accept')->count(),
+            'NotRegistered' => $notRegRows->count(),
+        ];
+
+        return response()->json($counts);
     }
 
 

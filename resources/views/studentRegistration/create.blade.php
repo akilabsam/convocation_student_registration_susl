@@ -573,6 +573,17 @@
         @endforeach
 
     </form>
+
+    {{-- Loading overlay shown during form submission --}}
+    <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+        <div style="text-align:center; color:#fff;">
+            <div class="spinner-border text-light" role="status" style="width:3rem; height:3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div style="margin-top:15px; font-size:1.2rem;">Processing your registration...</div>
+            <div style="margin-top:5px; font-size:0.9rem; opacity:0.8;">Please do not close or refresh this page.</div>
+        </div>
+    </div>
     <div style="margin-bottom:50px;margin-top: -30px" class="row">
         <div class="col-xs-11 col-sm-11 col-md-11 text-center">
         </div>
@@ -638,6 +649,18 @@
                 }
             }
             
+            // Validation passed — show loading overlay and disable buttons
+            var overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+            }
+            // Disable all submit buttons to prevent double submission
+            var buttons = document.querySelectorAll('#selectform button[type="submit"]');
+            buttons.forEach(function(btn) {
+                btn.disabled = true;
+                btn.textContent = 'Please wait...';
+            });
+
             return true; // Allow form submission
         }
     </script>

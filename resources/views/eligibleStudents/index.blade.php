@@ -379,6 +379,35 @@
 {{--            </script>--}}
 
 
+{{-- ===== Search by Register Number ===== --}}
+@if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))
+    <div class="mt-4 w-100 pb-2">
+        <div class="card shadow p-4" style="background-color: #E9DDDD;">
+            <h4 class="text-center mb-4">Search by Register Number</h4>
+
+            @if(session('regnum_error'))
+                <div class="alert alert-danger" role="alert">{{ session('regnum_error') }}</div>
+            @endif
+
+            <form action="{{ route('getESByRegNum') }}" method="GET">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-9">
+                        <label for="regNum" class="form-label">Register Number</label>
+                        <input type="text" name="regNum" id="regNum" class="form-control"
+                               placeholder="e.g. 21CIS0138" autocomplete="off"
+                               value="{{ $selectedRegNum ?? '' }}">
+                    </div>
+                    <div class="col-12 col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                        <a href="{{ route('eligibleStudents.index', ['clear_filters' => 1]) }}" class="btn btn-outline-secondary w-100">Reset</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+@endif
+{{-- ===== End Search by Register Number ===== --}}
+
  @if(checkPermission(['Admin','EBSC_Applied','EBSC_Geo','EBSC_Social','EBSC_Mana','EBSC_Med','EBSC_Agri','EBSC_Tech','EBSC_GS','EBSC_Computing','EBSC_CIKCS']))
     <div class=" mt-4 w-100 pb-4">
         <div class="card shadow p-4" style="background-color: #E9DDDD;">
@@ -390,45 +419,44 @@
                     
                     <div class="col-12">
                         <label for="convocationName" class="form-label">Convocation Name</label>
-                        {{ Form::select('convocationName', ($convo), null, ['class' => 'form-select']) }}
+                        {{ Form::select('convocationName', ($convo), $selectedConvocation ?? null, ['class' => 'form-select', 'id' => 'mainConvocationSelect']) }}
                     </div>
 
                     <div class="col-md-6">
                         <label for="studentRegEligible" class="form-label">Registration Status</label>
-                        <select required name="studentRegEligible" class="form-select">
-                            <option selected value="All">All Eligible Students</option>
-                            <option value="Registered">Registered Students</option>
-                            <option value="Pending">Registered Students Pending</option>
-                            <option value="Reject">Registered Students Rejected</option>
-                            <option value="Accept">Registered Students Accepted</option>
-                            <option value="NotRegistered">Not Registered Students</option>
+                        <select required name="studentRegEligible" class="form-select" id="statusSelect">
+                            <option value="All"    id="statusOpt-All" {{ ($selectedStatus ?? 'All') == 'All' ? 'selected' : '' }}>All Eligible Students</option>
+                            <option value="Registered"      id="statusOpt-Registered" {{ ($selectedStatus ?? '') == 'Registered' ? 'selected' : '' }}>Registered Students</option>
+                            <option value="Pending"         id="statusOpt-Pending" {{ ($selectedStatus ?? '') == 'Pending' ? 'selected' : '' }}>Registered Students Pending</option>
+                            <option value="Reject"          id="statusOpt-Reject" {{ ($selectedStatus ?? '') == 'Reject' ? 'selected' : '' }}>Registered Students Rejected</option>
+                            <option value="Accept"          id="statusOpt-Accept" {{ ($selectedStatus ?? '') == 'Accept' ? 'selected' : '' }}>Registered Students Accepted</option>
+                            <option value="NotRegistered"   id="statusOpt-NotRegistered" {{ ($selectedStatus ?? '') == 'NotRegistered' ? 'selected' : '' }}>Not Registered Students</option>
                         </select>
                     </div>
 
                     <div class="col-md-6">
                         <label for="faculty" class="form-label">Faculty</label>
-                        <select required name="faculty" class="form-select">
-                            <option value="All Faculty">All Faculty</option>
-                            <option value="Computing">Computing</option>
-                            <option value="Agricultural Sciences">Agricultural Sciences</option>
-                            <option value="Applied Sciences">Applied Sciences</option>
-                            <option value="Geomatics">Geomatics</option>
-                            <option value="Management Studies">Management Studies</option>
-                            <option value="Medicine">Medicine</option>
-                            <option value="Social Sciences & Languages">Social Sciences & Languages</option>
-                            <option value="Technology">Technology</option>
-                            <option value="Sport">Sport</option>
-                            <option value="Graduate Studies">Graduate Studies</option>
-                            <option value="Indigenous Knowledge & Community Studies">Indigenous Knowledge & Community Studies</option>
+                        <select required name="faculty" class="form-select" id="mainFacultySelect">
+                            <option value="All Faculty" {{ ($selectedFaculty ?? 'All Faculty') == 'All Faculty' ? 'selected' : '' }}>All Faculty</option>
+                            <option value="Computing" {{ ($selectedFaculty ?? '') == 'Computing' ? 'selected' : '' }}>Computing</option>
+                            <option value="Agricultural Sciences" {{ ($selectedFaculty ?? '') == 'Agricultural Sciences' ? 'selected' : '' }}>Agricultural Sciences</option>
+                            <option value="Applied Sciences" {{ ($selectedFaculty ?? '') == 'Applied Sciences' ? 'selected' : '' }}>Applied Sciences</option>
+                            <option value="Geomatics" {{ ($selectedFaculty ?? '') == 'Geomatics' ? 'selected' : '' }}>Geomatics</option>
+                            <option value="Management Studies" {{ ($selectedFaculty ?? '') == 'Management Studies' ? 'selected' : '' }}>Management Studies</option>
+                            <option value="Medicine" {{ ($selectedFaculty ?? '') == 'Medicine' ? 'selected' : '' }}>Medicine</option>
+                            <option value="Social Sciences & Languages" {{ ($selectedFaculty ?? '') == 'Social Sciences & Languages' ? 'selected' : '' }}>Social Sciences & Languages</option>
+                            <option value="Technology" {{ ($selectedFaculty ?? '') == 'Technology' ? 'selected' : '' }}>Technology</option>
+                            <option value="Sport" {{ ($selectedFaculty ?? '') == 'Sport' ? 'selected' : '' }}>Sport</option>
+                            <option value="Graduate Studies" {{ ($selectedFaculty ?? '') == 'Graduate Studies' ? 'selected' : '' }}>Graduate Studies</option>
+                            <option value="Indigenous Knowledge & Community Studies" {{ ($selectedFaculty ?? '') == 'Indigenous Knowledge & Community Studies' ? 'selected' : '' }}>Indigenous Knowledge & Community Studies</option>
                         </select>
                     </div>
 
                     <div class="col-12 d-flex justify-content-center gap-3 mt-3">
                         <button type="submit" class="btn btn-primary px-4">Search</button>
-                        <button type="button" class="btn btn-outline-secondary px-4" 
-                            onclick="document.getElementById('selectform').reset();">
+                        <a href="{{ route('eligibleStudents.index', ['clear_filters' => 1]) }}" class="btn btn-outline-secondary px-4">
                             Reset
-                        </button>
+                        </a>
                     </div>
 
                 </div>
@@ -522,12 +550,59 @@
                     </tbody>
                 </table>
             </div>
-            
+<script>
+(function () {
 
 
+    //Select the concocation, faculty and status 
+    var convoSelect   = document.getElementById('mainConvocationSelect');
+    var facultySelect = document.getElementById('mainFacultySelect');
+    var statusSelect  = document.getElementById('statusSelect');
 
+    if (!convoSelect || !facultySelect || !statusSelect) return;
 
+    // Base labels for each status option (without counts)
+    var baseLabels = {
+        'All':           'All Eligible Students',
+        'Registered':    'Registered Students',
+        'Pending':       'Registered Students Pending',
+        'Reject':        'Registered Students Rejected',
+        'Accept':        'Registered Students Accepted',
+        'NotRegistered': 'Not Registered Students'
+    };
 
+    function fetchStatusCounts() {
 
+        //set search parameters
+        var params = new URLSearchParams({
+            convocationName: convoSelect.value,
+            faculty: facultySelect.value
+        });
+
+        //fetching the json
+        fetch('/getStatusCounts?' + params.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (counts) {
+            // Update each option label with the count
+            for (var key in baseLabels) {
+                var option = document.getElementById('statusOpt-' + key);
+                if (option && counts[key] !== undefined) {
+                    option.textContent = baseLabels[key] + ' (' + counts[key] + ')';
+                }
+            }
+        })
+        .catch(function (err) {
+            console.error('Failed to fetch status counts:', err);
+        });
+    }
+
+    // Fetch counts on page load and when convocation or faculty changes
+    fetchStatusCounts();
+    convoSelect.addEventListener('change', fetchStatusCounts);
+    facultySelect.addEventListener('change', fetchStatusCounts);
+})();
+</script>
 
 @endsection
