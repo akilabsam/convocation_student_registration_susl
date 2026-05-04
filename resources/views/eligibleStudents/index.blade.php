@@ -552,6 +552,9 @@
             </div>
 <script>
 (function () {
+
+
+    //Select the concocation, faculty and status 
     var convoSelect   = document.getElementById('mainConvocationSelect');
     var facultySelect = document.getElementById('mainFacultySelect');
     var statusSelect  = document.getElementById('statusSelect');
@@ -569,11 +572,14 @@
     };
 
     function fetchStatusCounts() {
+
+        //set search parameters
         var params = new URLSearchParams({
             convocationName: convoSelect.value,
             faculty: facultySelect.value
         });
 
+        //fetching the json
         fetch('/getStatusCounts?' + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
